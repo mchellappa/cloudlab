@@ -184,11 +184,11 @@ On Windows machines:
 dotnet run
 ```
 ### 1.3 - Test the /api/order endpoint
-The address will be: localhost:8080/hello
+The address will be: localhost:<port>/api/order
 
 You can test via a browser or commandline:
 ```sh
-curl localhost:8080/hello
+curl localhost:<port>/api/order
 ```
 ## 2 - WebApplication on PCF
 
@@ -207,13 +207,13 @@ Enter your Username and Password.
 ### 2.2 - Deploy your application to PCF
 
 ```sh
-cf push cloud-lab -p target/cloud-lab-0.0.1-SNAPSHOT.jar
+cf push cloud-lab 
 ```
 
 Note with multiple lab participants, the default *route* generated based on application name will probably NOT be available, to solve this deploy with the random-route parameter.
 
 ```sh
-cf push cloud-lab -p target/cloud-lab-0.0.1-SNAPSHOT.jar --random-route
+cf push cloud-lab --random-route
 ```
 
 This will automatically create a new application in your default PCF development space, with the specific jar artifact deployed.
@@ -249,30 +249,6 @@ cf scale cloud-lab -i 2
 ```
 
 Via the GUI observe additional instances being spun up.
-
-### 2.6 - BONUS - Add a HomePage Controller to display PCF information using VCAP variables
-
-```java
-
-
-    @Value("${vcap.application.name:localMachine}")
-    private String applicationName;
-
-    @Value("${vcap.application.space_name:localSpace}")
-    private String spaceName;
-
-    @Value("${vcap.application.instance_id:localInstanceId}")
-    private String instanceId;
-
-
-
-    return "PCF Info: " + applicationName + "@" + spaceName + " " + instanceId;
-
-```
-
-Build and redeploy to PCF. Hit the homepage URL and note the PCF information.
-
-This includes Round Robin load balancing when you have multiple instances running.
 
 ## 3 - Operations 
 
@@ -337,12 +313,12 @@ Re-run the application
 
 ```
 
-### 3.2 - Check the localhost:8080/actuator/health endpoint
+### 3.2 - Check the localhost:<port>/health endpoint
 
 Verify that it works on your local running instance of the app:
 
 ```sh
-curl localhost:8080/health
+curl localhost:<port>/health
 ```
 
 
@@ -359,7 +335,7 @@ At any time, only one of the environments is live, with the live environment ser
 #### 4.6.1 - BONUS - Deploy a new instance of our cloud-lab
 
 ```sh
-cf push cloud-lab-2 -p build/libs/cloud-lab-0.0.1-SNAPSHOT.jar
+cf push cloud-lab-2 
 ```
 
 Right now, we have 2 deploys apps running (they can be different version of the application).
@@ -429,40 +405,6 @@ Then restart your app:
 cf restage pcf-demo
 ```
 
-## 5 - Configuration with Spring Boot
-
-Key points:
-* Spring Boot Profiles
-* Configuration precedence
-
-Spring Boot lets you externalize your configuration so that you can work with the same application code in different environments.
-
-https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html
-
-### 5.1 - Allow injection of the helloWorld message via external sources
-```java
-@RestController
-public class HelloWorldController {
-
-    @Value("${helloworld.message:'Hola Mundo - default!'}")
-    private String helloMessage;
-
-    @RequestMapping("hello")
-    public String helloWorld(){
-        return helloMessage;
-    }
-}
-```
-
-Note #1 : the usage of the default value in case nothing is found (optional).
-
-Note #2 : You may have to fix broken tests!!
-
-### 5.2 - Add a configurable value for helloworld.message in the application.properties file.
-
-```properties
-helloworld.message="Hello World - default config file"
-```
 
 ### 5.3 - Rebuild / Restart your app, and verify the /hello endpoint.
 
@@ -492,90 +434,7 @@ Verify the updated message at the /hello endpoint.
 
 Note: You can also use the Spring Config Server (available as a Service in the MarketPlace) to inject properties from an external source such as a GitHub repo.
 
-## 7 - Caching with Spring Boot
 
-Key points:
-* Spring Boot Cache
-* The Cacheable annotation
-
-### 7.1 - Add a slow , costly endpoint to the Application.
-
-One example would be performing an uppercase operation on a String with a time delay.
-
-```java
-@RestController
-public class CacheExampleController {
-
-  @RequestMapping("/uppercase")
-  public String uppercase(String input ){
-      try {Thread.sleep(5000); } catch (InterruptedException e) {}
-
-      return input.toUpperCase();
-  }
-}
-```
-
-Rebuild, rerun the app.
-
-From the browser you can call : *http://localhost:8080/uppercase?input=test*
-
-Or using curl:
-
-```sh
-curl http://localhost:8080/uppercase?input=test
-```
-
-Note how the /uppercase endpoint is always slow.
-
-### 7.2 - Add the Spring Boot Cache dependency to your build script (pom.xml)
-
-The full name of the dependency is : *org.springframework.boot:spring-boot-starter-cache*
-
-```xml
-<dependency>
-	<groupId>org.springframework.boot</groupId>
-	<artifactId>spring-boot-starter-cache</artifactId>
-</dependency>
-```
-
-### 7.3 - Enable Caching on the endpoint by using the *Cacheable* Annotation.
-
-Updated CacheExampleController should look like:
-
-```java
-@Cacheable("uppercase")
-@RequestMapping("/uppercase")
-public String uppercase(String input ){
-    try {Thread.sleep(5000); } catch (InterruptedException e) {}
-
-    return input.toUpperCase();
-}
-```
-
-You will also need to turn on Caching (app wide) by adding the EnableCaching annotation to your app.
-
-This can be done in the CloudLabApplication class:
-
-```java
-@SpringBootApplication
-@EnableCaching
-public class CloudLabApplication {
-
-	public static void main(String[] args) {
-		SpringApplication.run(CloudLabApplication.class, args);
-	}
-}
-```
-
-Restart your app, and verify that subsequent calls to the endpoint return much quicker.
-
-Note, the default cache implementation uses local in-memory caching, but this can be easily change to use 3rd party caching solutions such as Redis.
-
-### 7.4 - BONUS - Add an eviction endpoint to the controller
-
-Given a String, evict it from the Cache.
-
-Hint: CacheEvict annotation
 
 ## 8 - Caching on PCF
 

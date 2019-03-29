@@ -1,6 +1,6 @@
 # Cloud Lab
 
-Cloud Native Lab - Simple Workshop demonstrating Cloud-Native development with Spring Boot and Pivotal Cloud Foundry.
+Cloud Native Lab - Simple Workshop demonstrating Cloud-Native development with dotnet core and Pivotal Cloud Foundry.
 
 # Items covered:
 

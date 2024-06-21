@@ -22,6 +22,7 @@ Cloud Native Lab - Simple Workshop demonstrating Cloud-Native development with d
 *not valid
 *remove 
 @secret1
+@secret2
 
 ## PCF
 

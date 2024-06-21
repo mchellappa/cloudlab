@@ -19,6 +19,8 @@ Cloud Native Lab - Simple Workshop demonstrating Cloud-Native development with d
 * Metrics
 * Logging
 * Market Place
+*not valid
+*remove 
 
 
 ## PCF
